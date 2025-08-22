@@ -1,4 +1,4 @@
-# AfyaMawinguni001
+# TibaCloud
 
 This an online healthcare management platform that enables patients to easily and effectively access healthcare services from healthcare providers.
 
