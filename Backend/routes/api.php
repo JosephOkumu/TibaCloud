@@ -162,6 +162,9 @@ Route::prefix('payments/mpesa')->group(function () {
 
 // Stellar/Soroban Payment routes
 Route::prefix('payments/stellar')->group(function () {
+    // Public test route for Stellar integration
+    Route::post('/test-integration', [PaymentController::class, 'testStellarIntegration']);
+
     // Protected routes for Stellar payment operations
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/status/{checkoutRequestId}', [PaymentController::class, 'getStellarPaymentStatus']);

@@ -1174,5 +1174,84 @@ class PaymentController extends Controller
         }
     }
 
+    /**
+     * Test Stellar integration without smart contract
+     */
+    public function testStellarIntegration(Request $request): JsonResponse
+    {
+        try {
+            Log::info('Testing Stellar integration', $request->all());
+
+            // Simulate M-Pesa payment data
+            $simulatedPaymentData = [
+                'MpesaReceiptNumber' => 'TEST_' . uniqid(),
+                'Amount' => $request->input('amount', 1000),
+                'PhoneNumber' => $request->input('phone', '254712345678'),
+                'TransactionDate' => now()->format('YmdHis'),
+            ];
+
+            $checkoutRequestId = 'test_' . uniqid();
+
+            // Test currency conversion
+            $kesAmount = floatval($simulatedPaymentData['Amount']);
+            $usdcAmount = $this->stellarService->convertKesToUsdc($kesAmount);
+
+            // Prepare Stellar payment data
+            $stellarPaymentData = [
+                'mpesa_receipt' => $simulatedPaymentData['MpesaReceiptNumber'],
+                'amount' => $kesAmount,
+                'usdc_amount' => $usdcAmount,
+                'phone_number' => $simulatedPaymentData['PhoneNumber'],
+                'timestamp' => now()->toISOString(),
+                'checkout_request_id' => $checkoutRequestId
+            ];
+
+            // Test Soroban integration (without smart contract)
+            $sorobanResult = $this->stellarService->recordPaymentOnSoroban($stellarPaymentData);
+
+            // Test USDC payment creation (simulated)
+            $destinationWallet = config('stellar.TIBA_STELLAR_DESTINATION_WALLET');
+            $paymentResult = null;
+
+            if ($destinationWallet && $usdcAmount > 0) {
+                $memo = config('stellar.TIBA_PAYMENT_MEMO_PREFIX', 'TibaCloud-') . $checkoutRequestId;
+                $paymentResult = $this->stellarService->createPayment(
+                    $destinationWallet,
+                    $usdcAmount,
+                    'USDC',
+                    $memo
+                );
+            }
+
+            return response()->json([
+                'success' => true,
+                'test_type' => 'M-Pesa to Stellar Integration',
+                'mpesa_data' => $simulatedPaymentData,
+                'stellar_data' => $stellarPaymentData,
+                'currency_conversion' => [
+                    'kes_amount' => $kesAmount,
+                    'usdc_amount' => $usdcAmount,
+                    'exchange_rate' => $usdcAmount / $kesAmount
+                ],
+                'soroban_result' => $sorobanResult,
+                'usdc_payment_result' => $paymentResult,
+                'timestamp' => now()->toISOString(),
+                'message' => 'Stellar integration test completed successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Stellar integration test failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'message' => 'Stellar integration test failed'
+            ], 500);
+        }
+    }
+
 
 }
