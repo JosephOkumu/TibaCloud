@@ -68,7 +68,23 @@ export const useMpesaPayment = ({
 
           console.log(`Payment status check ${attempts + 1}:`, statusResponse);
 
-          if (statusResponse.ResultCode === "0") {
+          // Define M-Pesa status codes
+          const SUCCESS_CODE = "0";
+          const PROCESSING_CODES = ["1037", "4999", "1032", "1001"];
+          const FAILURE_CODES = [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "17",
+            "26",
+            "1025",
+            "1026",
+            "1027",
+          ];
+
+          if (statusResponse.ResultCode === SUCCESS_CODE) {
             // Payment successful
             console.log("Payment confirmed as successful");
             return {
@@ -76,10 +92,18 @@ export const useMpesaPayment = ({
               transactionId: statusResponse.MpesaReceiptNumber,
             };
           } else if (
-            statusResponse.ResultCode &&
-            statusResponse.ResultCode !== "1037"
+            PROCESSING_CODES.includes(statusResponse.ResultCode || "")
           ) {
-            // Payment failed (1037 means still processing)
+            // Still processing - continue polling
+            console.log(
+              `Payment still processing with code: ${statusResponse.ResultCode}`,
+            );
+          } else if (
+            FAILURE_CODES.includes(statusResponse.ResultCode || "") ||
+            (statusResponse.ResultCode &&
+              !PROCESSING_CODES.includes(statusResponse.ResultCode))
+          ) {
+            // Payment failed
             console.log("Payment failed with code:", statusResponse.ResultCode);
             return {
               success: false,
@@ -87,7 +111,7 @@ export const useMpesaPayment = ({
             };
           }
 
-          // Still processing (1037), continue polling
+          // Continue polling for processing status
           attempts++;
           const timeRemaining = Math.ceil(
             ((maxAttempts - attempts) * interval) / 1000 / 60,
