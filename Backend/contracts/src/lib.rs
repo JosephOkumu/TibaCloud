@@ -1,7 +1,5 @@
 #![no_std]
-use soroban_sdk::{
-    contract, contractimpl, contracttype, symbol_short, Env, Map, String, Symbol, Vec,
-};
+use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Env, String, Symbol};
 
 #[derive(Clone)]
 #[contracttype]
@@ -158,69 +156,23 @@ impl PaymentContract {
         env.storage().instance().get(&count_key).unwrap_or(0)
     }
 
-    /// Get payments by status (limited to last 100)
-    pub fn get_payments_by_status(env: Env, status: Symbol) -> Vec<PaymentRecord> {
-        let mut payments = Vec::new(&env);
-        let count = Self::get_payment_count(env.clone());
-        let max_check = if count > 100 { count - 100 } else { 0 };
-
-        // This is a simplified implementation - in production, you'd want
-        // a more efficient indexing system
-        for i in max_check..count {
-            // Note: This is a placeholder - you'd need to implement proper
-            // payment retrieval logic based on your indexing strategy
-        }
-
-        payments
-    }
-
     /// Verify payment exists and return basic info
     pub fn verify_payment_exists(env: Env, checkout_request_id: String) -> bool {
         let payment_key = DataKey::PaymentRecord(checkout_request_id);
         env.storage().persistent().has(&payment_key)
     }
 
-    /// Get payment summary for dashboard
-    pub fn get_payment_summary(env: Env, checkout_request_id: String) -> Map<Symbol, String> {
-        let mut summary = Map::new(&env);
-        let payment_key = DataKey::PaymentRecord(checkout_request_id.clone());
-
-        if let Some(payment) = env
-            .storage()
-            .persistent()
-            .get::<DataKey, PaymentRecord>(&payment_key)
-        {
-            summary.set(symbol_short!("receipt"), payment.mpesa_receipt);
-            summary.set(symbol_short!("kes"), payment.amount_kes.to_string());
-            summary.set(symbol_short!("usdc"), payment.amount_usdc.to_string());
-            summary.set(symbol_short!("phone"), payment.phone_number);
-            summary.set(symbol_short!("status"), payment.status.to_string());
-            summary.set(symbol_short!("timestamp"), payment.timestamp.to_string());
-        }
-
-        summary
-    }
-
-    /// Admin function to get contract info
-    pub fn get_contract_info(env: Env) -> Map<Symbol, String> {
-        let mut info = Map::new(&env);
+    /// Get admin address
+    pub fn get_admin(env: Env) -> Option<String> {
         let admin_key = DataKey::AdminKey;
-
-        if let Some(admin) = env.storage().instance().get::<DataKey, String>(&admin_key) {
-            info.set(symbol_short!("admin"), admin);
-        }
-
-        let count = Self::get_payment_count(env);
-        info.set(symbol_short!("count"), count.to_string());
-
-        info
+        env.storage().instance().get(&admin_key)
     }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-    use soroban_sdk::{testutils::Events, Env};
+    use soroban_sdk::Env;
 
     #[test]
     fn test_initialize_contract() {
