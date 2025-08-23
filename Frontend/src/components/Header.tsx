@@ -8,16 +8,16 @@ const Header = () => {
 
   const scrollToSection = (id: string) => {
     // First, check if we're on the home page
-    if (location.pathname !== '/') {
+    if (location.pathname !== "/") {
       // If not, navigate to home page with the hash
       window.location.href = `/#${id}`;
       return;
     }
-    
+
     // If already on home page, scroll to the section
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      element.scrollIntoView({ behavior: "smooth" });
     }
   };
   return (
@@ -27,40 +27,38 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5">
             <span className="text-xl font-bold">
-              <span className="text-primary-blue">AFYA</span>
-              <span className="text-secondary-green"> MAWINGUNI</span>
+              <span className="text-primary-blue">TIBA</span>
+              <span className="text-secondary-green"> CLOUD</span>
             </span>
           </Link>
 
           {/* Right side navigation and buttons */}
           <div className="flex items-center gap-6">
             {/* Navigation Links */}
-            <button 
-              onClick={() => scrollToSection('services')} 
+            <button
+              onClick={() => scrollToSection("services")}
               className="text-custom-dark hover:text-primary-blue font-medium"
             >
               Services
             </button>
-            <button 
-              onClick={() => scrollToSection('accounts')} 
+            <button
+              onClick={() => scrollToSection("accounts")}
               className="text-custom-dark hover:text-primary-blue font-medium"
             >
               Accounts
             </button>
-            <Link 
+            <Link
               to="/about-us"
               className="text-custom-dark hover:text-primary-blue font-medium"
             >
               About Us
             </Link>
-            
+
             {/* Sign In Button */}
             <AuthButton />
-            
+
             {/* Register Button */}
-            <AuthButton defaultTab="signup">
-              Register
-            </AuthButton>
+            <AuthButton defaultTab="signup">Register</AuthButton>
           </div>
         </nav>
       </div>

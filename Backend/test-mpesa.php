@@ -82,7 +82,7 @@ try {
         'PhoneNumber' => $testPhoneNumber,
         'CallBackURL' => 'https://webhook.site/unique-id', // Replace with your callback URL
         'AccountReference' => 'TEST-' . time(),
-        'TransactionDesc' => 'Test payment from AfyaMawinguni'
+        'TransactionDesc' => 'Test payment from Tiba Cloud'
     ];
 
     $ch = curl_init();

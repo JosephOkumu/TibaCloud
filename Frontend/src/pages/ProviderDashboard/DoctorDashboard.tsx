@@ -1027,8 +1027,8 @@ const DoctorDashboard = () => {
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold">
-              <span className="text-primary-blue">AFYA</span>
-              <span className="text-secondary-green"> MAWINGUNI</span>
+              <span className="text-primary-blue">TIBA</span>
+              <span className="text-secondary-green"> CLOUD</span>
             </h1>
             <p className="text-gray-600 mt-2">Doctor's Dashboard</p>
           </div>

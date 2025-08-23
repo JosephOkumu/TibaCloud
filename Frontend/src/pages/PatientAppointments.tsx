@@ -54,8 +54,8 @@ const PatientAppointments = () => {
             </Link>
             <Link to="/patient-dashboard">
               <span className="font-semibold text-xl font-playfair">
-                <span className="text-primary-blue">AFYA</span>
-                <span className="text-secondary-green"> MAWINGUNI</span>
+                <span className="text-primary-blue">TIBA</span>
+                <span className="text-secondary-green"> CLOUD</span>
               </span>
             </Link>
           </div>

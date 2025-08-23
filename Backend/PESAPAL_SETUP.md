@@ -1,6 +1,6 @@
 # Pesapal Payment Integration Documentation
 
-This document provides comprehensive documentation for the Pesapal payment integration in the AfyaMawinguni lab booking system.
+This document provides comprehensive documentation for the Pesapal payment integration in the Tiba Cloud lab booking system.
 
 ## Overview
 

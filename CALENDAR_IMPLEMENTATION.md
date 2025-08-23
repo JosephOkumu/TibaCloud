@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the complete implementation of an interactive appointment calendar for medical service providers (doctors, nurses, labs) in the AfyaMawinguni medical platform. The calendar provides a comprehensive view of scheduled appointments with filtering capabilities, detailed appointment information, and support for both virtual and in-person consultations. The implementation includes occupied time slots visualization to prevent double-booking.
+This document outlines the complete implementation of an interactive appointment calendar for medical service providers (doctors, nurses, labs) in the Tiba Cloud medical platform. The calendar provides a comprehensive view of scheduled appointments with filtering capabilities, detailed appointment information, and support for both virtual and in-person consultations. The implementation includes occupied time slots visualization to prevent double-booking.
 
 ## Features Implemented
 
@@ -41,7 +41,7 @@ This document outlines the complete implementation of an interactive appointment
 ## File Structure
 
 ```
-AfyaMawinguni001/Frontend/src/
+TibaCloud/Frontend/src/
 ├── components/
 │   └── calendar/
 │       ├── AppointmentCalendar.tsx    # Main calendar component

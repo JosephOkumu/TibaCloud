@@ -575,7 +575,7 @@ const HomeNursingDashboard = () => {
 
           // Show welcome notification
           toast({
-            title: "Welcome to Afya Mawinguni!",
+            title: "Welcome to Tiba Cloud!",
             description:
               "Your nursing provider profile has been created. You can update it in settings.",
           });
@@ -870,8 +870,8 @@ const HomeNursingDashboard = () => {
         <div className="mb-8 flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">
-              <span className="text-primary-blue">AFYA</span>
-              <span className="text-secondary-green"> MAWINGUNI</span>
+              <span className="text-primary-blue">TIBA</span>
+              <span className="text-secondary-green"> CLOUD</span>
             </h1>
             <p className="text-gray-600 mt-2">
               Home Nursing Service Provider Dashboard

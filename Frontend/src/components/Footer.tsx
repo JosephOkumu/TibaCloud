@@ -7,7 +7,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div>
-            <h3 className="font-bold text-lg mb-4">Afya Mawinguni</h3>
+            <h3 className="font-bold text-lg mb-4">Tiba Cloud</h3>
             <ul className="space-y-2">
               <li>
                 <Link to="/about-us" className="hover:text-gray-300">
@@ -85,14 +85,14 @@ const Footer = () => {
           <div>
             <h3 className="font-bold text-lg mb-4">Contact Us</h3>
             <ul className="space-y-2">
-              <li>info@afyamawinguni.com</li>
+              <li>info@tibacloud.com</li>
               <li>Support Center</li>
             </ul>
           </div>
         </div>
 
         <div className="mt-8 pt-8 border-t border-gray-700 text-center text-sm">
-          <p> 2025 Afya Mawinguni. All rights reserved.</p>
+          <p> 2025 Tiba Cloud. All rights reserved.</p>
         </div>
       </div>
     </footer>

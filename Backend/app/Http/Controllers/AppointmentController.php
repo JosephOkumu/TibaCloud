@@ -18,21 +18,21 @@ class AppointmentController extends Controller
     {
         // Allow filtering by patient_id or doctor_id
         $query = Appointment::query();
-        
+
         if ($request->has('patient_id')) {
             $query->where('patient_id', $request->patient_id);
         }
-        
+
         if ($request->has('doctor_id')) {
             $query->where('doctor_id', $request->doctor_id);
         }
-        
+
         if ($request->has('status')) {
             $query->where('status', $request->status);
         }
-        
+
         $appointments = $query->with(['patient', 'doctor'])->orderBy('appointment_datetime', 'asc')->get();
-        
+
         return response()->json([
             'status' => 'success',
             'data' => $appointments
@@ -69,10 +69,10 @@ class AppointmentController extends Controller
         $data = $request->all();
         $data['status'] = 'scheduled';
         $data['is_paid'] = false;
-        
+
         // Generate meeting link for virtual appointments
         if ($request->type === 'virtual') {
-            $data['meeting_link'] = 'https://meet.afyamawinguni.com/' . uniqid();
+            $data['meeting_link'] = 'https://meet.tibacloud.com/' . uniqid();
         }
 
         $appointment = Appointment::create($data);
@@ -150,7 +150,7 @@ class AppointmentController extends Controller
 
         // If changing to virtual type and no meeting link is set, generate one
         if ($request->has('type') && $request->type === 'virtual' && empty($request->meeting_link)) {
-            $request->merge(['meeting_link' => 'https://meet.afyamawinguni.com/' . uniqid()]);
+            $request->merge(['meeting_link' => 'https://meet.tibacloud.com/' . uniqid()]);
         }
 
         $appointment->update($request->all());

@@ -291,8 +291,8 @@ const HomeNursingProviders = () => {
             </Link>
             <Link to="/patient-dashboard">
               <span className="text-xl font-bold">
-                <span className="text-primary-blue">AFYA</span>
-                <span className="text-secondary-green"> MAWINGUNI</span>
+                <span className="text-primary-blue">TIBA</span>
+                <span className="text-secondary-green"> CLOUD</span>
               </span>
             </Link>
           </div>

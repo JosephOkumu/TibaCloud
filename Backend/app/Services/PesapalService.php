@@ -57,7 +57,7 @@ class PesapalService
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-            curl_setopt($ch, CURLOPT_USERAGENT, 'Laravel/9.0 (AfyaMawinguni Medical Platform)');
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Laravel/9.0 (Tiba Cloud Medical Platform)');
 
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -170,7 +170,7 @@ class PesapalService
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-            curl_setopt($ch, CURLOPT_USERAGENT, 'Laravel/9.0 (AfyaMawinguni Medical Platform)');
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Laravel/9.0 (Tiba Cloud Medical Platform)');
             curl_setopt($ch, CURLOPT_VERBOSE, true);
             curl_setopt($ch, CURLOPT_STDERR, fopen('php://temp', 'rw+'));
 
@@ -316,7 +316,7 @@ class PesapalService
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-            curl_setopt($ch, CURLOPT_USERAGENT, 'Laravel/9.0 (AfyaMawinguni Medical Platform)');
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Laravel/9.0 (Tiba Cloud Medical Platform)');
 
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);

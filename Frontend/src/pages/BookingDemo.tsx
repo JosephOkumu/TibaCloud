@@ -32,7 +32,8 @@ const getMockOccupiedTimes = (providerType: string, date: Date) => {
     if (dayOfWeek === 2) return ["10:00 AM", "11:00 AM", "4:00 PM"];
     if (dayOfWeek === 3) return ["8:30 AM", "1:00 PM", "2:30 PM", "5:00 PM"];
     if (dayOfWeek === 4) return ["9:30 AM", "3:30 PM", "4:30 PM"];
-    if (dayOfWeek === 5) return ["8:00 AM", "11:30 AM", "1:30 PM", "2:00 PM", "4:00 PM"];
+    if (dayOfWeek === 5)
+      return ["8:00 AM", "11:30 AM", "1:30 PM", "2:00 PM", "4:00 PM"];
     return [];
   } else if (providerType === "nursing") {
     // Different patterns for nursing
@@ -55,14 +56,34 @@ const getMockOccupiedTimes = (providerType: string, date: Date) => {
 };
 
 const timeSlots = [
-  "7:00 AM", "7:30 AM", "8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM",
-  "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM", "12:00 PM", "12:30 PM",
-  "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM",
-  "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM"
+  "7:00 AM",
+  "7:30 AM",
+  "8:00 AM",
+  "8:30 AM",
+  "9:00 AM",
+  "9:30 AM",
+  "10:00 AM",
+  "10:30 AM",
+  "11:00 AM",
+  "11:30 AM",
+  "12:00 PM",
+  "12:30 PM",
+  "1:00 PM",
+  "1:30 PM",
+  "2:00 PM",
+  "2:30 PM",
+  "3:00 PM",
+  "3:30 PM",
+  "4:00 PM",
+  "4:30 PM",
+  "5:00 PM",
+  "5:30 PM",
 ];
 
 const BookingDemo = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    new Date(),
+  );
   const [selectedTimes, setSelectedTimes] = useState<{
     doctor: string | null;
     nursing: string | null;
@@ -76,9 +97,9 @@ const BookingDemo = () => {
   const [consultationType, setConsultationType] = useState("physical");
 
   const handleTimeSelection = (providerType: string, time: string) => {
-    setSelectedTimes(prev => ({
+    setSelectedTimes((prev) => ({
       ...prev,
-      [providerType]: prev[providerType] === time ? null : time
+      [providerType]: prev[providerType] === time ? null : time,
     }));
   };
 
@@ -110,7 +131,12 @@ const BookingDemo = () => {
     }
   };
 
-  const TimeSlotGrid = ({ providerType, title, icon, color }: {
+  const TimeSlotGrid = ({
+    providerType,
+    title,
+    icon,
+    color,
+  }: {
     providerType: string;
     title: string;
     icon: React.ReactNode;
@@ -144,10 +170,12 @@ const BookingDemo = () => {
                       isOccupied
                         ? "bg-red-100 text-red-700 border-red-300 cursor-not-allowed opacity-75"
                         : isSelected
-                          ? `${color.replace('bg-', 'bg-').replace('500', '500')} text-white border-transparent shadow-md transform scale-105 cursor-pointer`
+                          ? `${color.replace("bg-", "bg-").replace("500", "500")} text-white border-transparent shadow-md transform scale-105 cursor-pointer`
                           : "border-gray-200 hover:border-gray-300 hover:bg-gray-50 cursor-pointer hover:shadow-sm"
                     }`}
-                    onClick={() => !isOccupied && handleTimeSelection(providerType, slot)}
+                    onClick={() =>
+                      !isOccupied && handleTimeSelection(providerType, slot)
+                    }
                     title={
                       isOccupied
                         ? `This time slot is already booked for ${providerType} services`
@@ -215,14 +243,15 @@ const BookingDemo = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-2">
-            <span className="text-blue-600">AFYA</span>
-            <span className="text-green-600"> MAWINGUNI</span>
+            <span className="text-blue-600">TIBA</span>
+            <span className="text-green-600"> CLOUD</span>
           </h1>
           <p className="text-gray-600 text-lg">
             Booking Interface Demo - Occupied Slots Visualization
           </p>
           <p className="text-sm text-gray-500 mt-2">
-            This demo shows how fully booked dates and times appear across different provider types
+            This demo shows how fully booked dates and times appear across
+            different provider types
           </p>
         </div>
 
@@ -232,11 +261,15 @@ const BookingDemo = () => {
             <div className="flex items-start gap-3">
               <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-medium text-blue-900 mb-1">Demo Information</h3>
+                <h3 className="font-medium text-blue-900 mb-1">
+                  Demo Information
+                </h3>
                 <p className="text-sm text-blue-800">
-                  This is a demonstration with dummy data showing occupied time slots.
-                  When payment features are implemented, these dummy examples will be replaced with real booking data.
-                  Different provider types show different booking patterns and availability.
+                  This is a demonstration with dummy data showing occupied time
+                  slots. When payment features are implemented, these dummy
+                  examples will be replaced with real booking data. Different
+                  provider types show different booking patterns and
+                  availability.
                 </p>
               </div>
             </div>
@@ -267,13 +300,15 @@ const BookingDemo = () => {
                 }}
                 disabled={(date) => {
                   // Disable past dates and some future dates as "fully booked"
-                  const isPastDate = date < new Date(new Date().setHours(0, 0, 0, 0));
+                  const isPastDate =
+                    date < new Date(new Date().setHours(0, 0, 0, 0));
                   const dayOfWeek = date.getDay();
                   const isFullyBooked = dayOfWeek === 0; // Sundays fully booked
                   return isPastDate || isFullyBooked;
                 }}
                 modifiers={{
-                  fullyBooked: (date) => date.getDay() === 0 && date >= new Date(),
+                  fullyBooked: (date) =>
+                    date.getDay() === 0 && date >= new Date(),
                 }}
                 modifiersStyles={{
                   fullyBooked: {
@@ -354,7 +389,9 @@ const BookingDemo = () => {
         {selectedDate && (
           <Card className="mt-6">
             <CardHeader>
-              <CardTitle>Booking Summary for {selectedDate.toLocaleDateString()}</CardTitle>
+              <CardTitle>
+                Booking Summary for {selectedDate.toLocaleDateString()}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -362,7 +399,9 @@ const BookingDemo = () => {
                 <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
                   <div className="flex items-center gap-2 mb-2">
                     <User className="h-4 w-4 text-blue-600" />
-                    <span className="font-medium text-blue-900">Doctor Consultation</span>
+                    <span className="font-medium text-blue-900">
+                      Doctor Consultation
+                    </span>
                   </div>
                   <div className="text-sm space-y-1">
                     <p>Available slots: {getAvailableSlots("doctor")}</p>
@@ -379,7 +418,9 @@ const BookingDemo = () => {
                 <div className="p-4 border border-green-200 rounded-lg bg-green-50">
                   <div className="flex items-center gap-2 mb-2">
                     <Heart className="h-4 w-4 text-green-600" />
-                    <span className="font-medium text-green-900">Home Nursing</span>
+                    <span className="font-medium text-green-900">
+                      Home Nursing
+                    </span>
                   </div>
                   <div className="text-sm space-y-1">
                     <p>Available slots: {getAvailableSlots("nursing")}</p>
@@ -396,7 +437,9 @@ const BookingDemo = () => {
                 <div className="p-4 border border-purple-200 rounded-lg bg-purple-50">
                   <div className="flex items-center gap-2 mb-2">
                     <Microscope className="h-4 w-4 text-purple-600" />
-                    <span className="font-medium text-purple-900">Lab Tests</span>
+                    <span className="font-medium text-purple-900">
+                      Lab Tests
+                    </span>
                   </div>
                   <div className="text-sm space-y-1">
                     <p>Available slots: {getAvailableSlots("lab")}</p>
@@ -416,8 +459,9 @@ const BookingDemo = () => {
         {/* Footer */}
         <div className="text-center mt-8 p-4 bg-gray-100 rounded-lg">
           <p className="text-sm text-gray-600">
-            🚀 This demo shows the occupied slots functionality across all provider types.
-            The dummy data will be replaced with real booking information when payment integration is complete.
+            🚀 This demo shows the occupied slots functionality across all
+            provider types. The dummy data will be replaced with real booking
+            information when payment integration is complete.
           </p>
         </div>
       </div>
