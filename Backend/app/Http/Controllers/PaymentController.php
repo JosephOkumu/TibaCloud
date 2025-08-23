@@ -28,7 +28,7 @@ class PaymentController extends Controller
         $this->consumerSecret = 'uBehSV388ZtcoUjLCoRioIAbAg9HQfZm0PgYubcyPQ0FDSGNicXMJ74fUOE1MuPP';
         $this->businessShortCode = '174379';
         $this->passkey = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919';
-        $this->callbackUrl = 'https://mydomain.com/path';
+        $this->callbackUrl = 'https://c0f38ff01648.ngrok-free.app/api/payments/mpesa/callback';
         $this->baseUrl = 'https://sandbox.safaricom.co.ke';
     }
 
