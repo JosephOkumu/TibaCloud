@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
+import { AxiosError } from "axios";
 import {
   Dialog,
   DialogContent,
@@ -109,11 +110,13 @@ const AuthModal = ({
           }
         }
       }, 500);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Login error:", error);
+      const axiosError = error as AxiosError<{ message?: string }>;
       toast({
         title: "Login Failed",
-        description: error.response?.data?.message || "Invalid credentials",
+        description:
+          axiosError.response?.data?.message || "Invalid credentials",
         variant: "destructive",
       });
     } finally {
@@ -186,19 +189,25 @@ const AuthModal = ({
             navigate("/");
         }
       }, 500);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Registration error:", error);
 
       // Handle validation errors more specifically
-      if (error.response && error.response.status === 422) {
-        const validationErrors = error.response.data.errors;
+      const axiosError = error as AxiosError<{
+        message?: string;
+        errors?: Record<string, string[]>;
+      }>;
+      if (axiosError.response && axiosError.response.status === 422) {
+        const validationErrors = axiosError.response.data?.errors;
         console.log("Validation errors:", validationErrors);
 
         // Display the first validation error message
-        const firstError = Object.values(validationErrors)[0];
+        const firstError = validationErrors
+          ? Object.values(validationErrors)[0]
+          : null;
         const errorMessage = Array.isArray(firstError)
           ? firstError[0]
-          : String(firstError);
+          : String(firstError || "Validation failed");
 
         toast({
           title: "Validation Error",
@@ -210,7 +219,7 @@ const AuthModal = ({
         toast({
           title: "Registration Failed",
           description:
-            error.response?.data?.message ||
+            axiosError.response?.data?.message ||
             "Unable to register. Please try again.",
           variant: "destructive",
         });

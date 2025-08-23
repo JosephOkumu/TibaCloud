@@ -159,29 +159,7 @@ class MpesaService {
       return response.data;
     } catch (error: unknown) {
       console.error("Error checking payment status:", error);
-
-      if (error && typeof error === "object" && "response" in error) {
-        const axiosError = error as {
-          response?: {
-            data?: { message?: string; error?: string };
-            status?: number;
-          };
-        };
-        console.error(
-          "M-Pesa Status Check Error Response:",
-          axiosError.response,
-        );
-
-        if (axiosError.response?.data?.message) {
-          throw new Error(axiosError.response.data.message);
-        }
-
-        if (axiosError.response?.data?.error) {
-          throw new Error(axiosError.response.data.error);
-        }
-      }
-
-      throw new Error("Failed to check payment status");
+      throw error;
     }
   }
 
@@ -199,26 +177,7 @@ class MpesaService {
       return response.data;
     } catch (error: unknown) {
       console.error("Error getting payment result:", error);
-
-      if (error && typeof error === "object" && "response" in error) {
-        const axiosError = error as {
-          response?: {
-            data?: { message?: string; error?: string };
-            status?: number;
-          };
-        };
-        console.error("Payment Result Error Response:", axiosError.response);
-
-        if (axiosError.response?.data?.message) {
-          throw new Error(axiosError.response.data.message);
-        }
-
-        if (axiosError.response?.data?.error) {
-          throw new Error(axiosError.response.data.error);
-        }
-      }
-
-      throw new Error("Failed to get payment result");
+      throw error;
     }
   }
 

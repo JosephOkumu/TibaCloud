@@ -134,10 +134,7 @@ const LabProviderDetails = () => {
       setIsPaymentSuccess(true);
       setIsPaymentModalOpen(false);
     },
-    onError: (error) => {
-      setIsProcessing(false);
-      console.error("Payment error:", error);
-    },
+    
   });
 
   // Pesapal payment hook
@@ -199,7 +196,7 @@ const LabProviderDetails = () => {
     try {
       return JSON.parse(jsonString);
     } catch (error) {
-      console.error("Error parsing JSON:", error);
+      // Silently handle JSON parsing errors - this is expected for plain text
       return null;
     }
   };
@@ -481,8 +478,7 @@ const LabProviderDetails = () => {
           phone_number: phoneNumber || "+254722549387",
           first_name: user.name?.split(" ")[0] || "Patient",
           last_name: user.name?.split(" ").slice(1).join(" ") || "User",
-          description:
-            `Lab tests at ${provider.lab_name}` || "Lab test booking",
+          description: `Lab tests at ${provider.lab_name}`,
           lab_provider_id: provider.id,
           patient_id: user.id,
         });

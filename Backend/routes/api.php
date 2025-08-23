@@ -160,6 +160,14 @@ Route::prefix('payments/mpesa')->group(function () {
     });
 });
 
+// Stellar/Soroban Payment routes
+Route::prefix('payments/stellar')->group(function () {
+    // Protected routes for Stellar payment operations
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/status/{checkoutRequestId}', [PaymentController::class, 'getStellarPaymentStatus']);
+    });
+});
+
 // Pesapal Payment routes
 Route::prefix('payments/pesapal')->group(function () {
     // Public routes for Pesapal IPN callback

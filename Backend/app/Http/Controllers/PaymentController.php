@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 use App\Services\PesapalService;
+use App\Services\StellarService;
 
 class PaymentController extends Controller
 {
@@ -18,9 +19,11 @@ class PaymentController extends Controller
     private $passkey;
     private $callbackUrl;
     private $baseUrl;
+    private $stellarService;
 
-    public function __construct()
+    public function __construct(StellarService $stellarService)
     {
+        $this->stellarService = $stellarService;
         $this->consumerKey = 'tDcVSvHk2KPYGpTYGfOZC4aWlwmOaSqOXDMVQDWHACAEbX8f';
         $this->consumerSecret = 'uBehSV388ZtcoUjLCoRioIAbAg9HQfZm0PgYubcyPQ0FDSGNicXMJ74fUOE1MuPP';
         $this->businessShortCode = '174379';
@@ -416,6 +419,9 @@ class PaymentController extends Controller
                     'processed_at' => now()
                 ], now()->addDays(7));
 
+                // Process Stellar/Soroban integration
+                $this->processStellarPayment($paymentData, $checkoutRequestId);
+
             } else {
             // Payment failed
             Log::warning('Payment failed', [
@@ -444,6 +450,106 @@ class PaymentController extends Controller
             ]);
 
             return response()->json(['message' => 'Callback processing failed'], 500);
+        }
+    }
+
+    /**
+     * Process Stellar/Soroban payment after successful M-Pesa transaction
+     */
+    private function processStellarPayment($paymentData, $checkoutRequestId)
+    {
+        try {
+            Log::info('Processing Stellar payment for M-Pesa transaction', [
+                'checkout_request_id' => $checkoutRequestId,
+                'mpesa_receipt' => $paymentData['MpesaReceiptNumber'] ?? null,
+                'amount' => $paymentData['Amount'] ?? null
+            ]);
+
+            // Convert KES amount to USDC
+            $kesAmount = floatval($paymentData['Amount'] ?? 0);
+            $usdcAmount = $this->stellarService->convertKesToUsdc($kesAmount);
+
+            // Prepare payment data for Soroban
+            $stellarPaymentData = [
+                'mpesa_receipt' => $paymentData['MpesaReceiptNumber'] ?? null,
+                'amount' => $kesAmount,
+                'usdc_amount' => $usdcAmount,
+                'phone_number' => $paymentData['PhoneNumber'] ?? null,
+                'timestamp' => now()->toISOString(),
+                'checkout_request_id' => $checkoutRequestId
+            ];
+
+            // Record payment on Soroban smart contract
+            $sorobanResult = $this->stellarService->recordPaymentOnSoroban($stellarPaymentData);
+
+            if ($sorobanResult['success']) {
+                Log::info('Payment successfully recorded on Soroban', [
+                    'transaction_hash' => $sorobanResult['transaction_hash'] ?? null,
+                    'checkout_request_id' => $checkoutRequestId
+                ]);
+
+                // Store Stellar transaction data
+                Cache::put('stellar_payment_' . $checkoutRequestId, [
+                    'status' => 'success',
+                    'transaction_hash' => $sorobanResult['transaction_hash'] ?? null,
+                    'usdc_amount' => $usdcAmount,
+                    'kes_amount' => $kesAmount,
+                    'processed_at' => now()
+                ], now()->addDays(30));
+
+                // Optional: Create actual USDC payment to destination wallet
+                $destinationWallet = config('stellar.TIBA_STELLAR_DESTINATION_WALLET');
+                if ($destinationWallet && $usdcAmount > 0) {
+                    $memo = config('stellar.TIBA_PAYMENT_MEMO_PREFIX', 'TibaCloud-') . $checkoutRequestId;
+
+                    $paymentResult = $this->stellarService->createPayment(
+                        $destinationWallet,
+                        $usdcAmount,
+                        'USDC',
+                        $memo
+                    );
+
+                    if ($paymentResult['success']) {
+                        Log::info('USDC payment sent successfully', [
+                            'transaction_hash' => $paymentResult['transaction_hash'],
+                            'amount' => $usdcAmount,
+                            'destination' => $destinationWallet
+                        ]);
+
+                        // Update cache with payment transaction hash
+                        $stellarCache = Cache::get('stellar_payment_' . $checkoutRequestId, []);
+                        $stellarCache['usdc_payment_hash'] = $paymentResult['transaction_hash'];
+                        Cache::put('stellar_payment_' . $checkoutRequestId, $stellarCache, now()->addDays(30));
+                    }
+                }
+
+            } else {
+                Log::error('Failed to record payment on Soroban', [
+                    'error' => $sorobanResult['error'] ?? 'Unknown error',
+                    'checkout_request_id' => $checkoutRequestId
+                ]);
+
+                // Store failed Stellar transaction
+                Cache::put('stellar_payment_' . $checkoutRequestId, [
+                    'status' => 'failed',
+                    'error' => $sorobanResult['error'] ?? 'Unknown error',
+                    'processed_at' => now()
+                ], now()->addDays(7));
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Exception while processing Stellar payment', [
+                'error' => $e->getMessage(),
+                'checkout_request_id' => $checkoutRequestId,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Store exception in cache
+            Cache::put('stellar_payment_' . $checkoutRequestId, [
+                'status' => 'exception',
+                'error' => $e->getMessage(),
+                'processed_at' => now()
+            ], now()->addDays(7));
         }
     }
 
@@ -562,6 +668,25 @@ class PaymentController extends Controller
 
                 return response()->json($statusData);
             } else {
+                // Check if the error response contains "processing" message
+                $errorData = json_decode($response, true);
+                $errorMessage = $errorData['errorMessage'] ?? $response ?? 'Unknown error';
+
+                if (stripos($errorMessage, 'still under processing') !== false ||
+                    stripos($errorMessage, 'transaction is processing') !== false) {
+                    Log::info('M-Pesa transaction still processing', [
+                        'checkout_request_id' => $checkoutRequestId,
+                        'message' => $errorMessage
+                    ]);
+
+                    // Return processing status instead of error
+                    return response()->json([
+                        'ResultCode' => '1037',
+                        'ResultDesc' => 'Transaction is still under processing',
+                        'CheckoutRequestID' => $checkoutRequestId
+                    ]);
+                }
+
                 Log::warning('M-Pesa status query failed', [
                     'checkout_request_id' => $checkoutRequestId,
                     'status' => $httpCode,
@@ -578,8 +703,25 @@ class PaymentController extends Controller
             }
 
         } catch (\Exception $e) {
+            $errorMessage = $e->getMessage();
+
+            // Check if the exception message indicates processing status
+            if (stripos($errorMessage, 'still under processing') !== false ||
+                stripos($errorMessage, 'transaction is processing') !== false) {
+                Log::info('M-Pesa transaction still processing (from exception)', [
+                    'checkout_request_id' => $checkoutRequestId,
+                    'message' => $errorMessage
+                ]);
+
+                return response()->json([
+                    'ResultCode' => '1037',
+                    'ResultDesc' => 'Transaction is still under processing',
+                    'CheckoutRequestID' => $checkoutRequestId
+                ]);
+            }
+
             Log::error('Exception while getting payment result', [
-                'message' => $e->getMessage(),
+                'message' => $errorMessage,
                 'checkout_request_id' => $checkoutRequestId,
                 'trace' => $e->getTraceAsString()
             ]);
@@ -968,6 +1110,66 @@ class PaymentController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Connection test failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get Stellar payment status for a checkout request
+     */
+    public function getStellarPaymentStatus($checkoutRequestId): JsonResponse
+    {
+        try {
+            Log::info('Checking Stellar payment status', [
+                'checkout_request_id' => $checkoutRequestId
+            ]);
+
+            // Get Stellar payment data from cache
+            $stellarPayment = Cache::get('stellar_payment_' . $checkoutRequestId);
+
+            if (!$stellarPayment) {
+                return response()->json([
+                    'status' => 'not_found',
+                    'message' => 'No Stellar payment record found',
+                    'checkout_request_id' => $checkoutRequestId
+                ]);
+            }
+
+            // Get M-Pesa payment data for comparison
+            $mpesaPayment = Cache::get('mpesa_payment_' . $checkoutRequestId);
+
+            $response = [
+                'status' => $stellarPayment['status'],
+                'checkout_request_id' => $checkoutRequestId,
+                'stellar_data' => $stellarPayment,
+                'mpesa_data' => $mpesaPayment,
+                'timestamp' => now()->toISOString()
+            ];
+
+            // Verify transaction on Stellar network if we have a hash
+            if (isset($stellarPayment['transaction_hash'])) {
+                $verification = $this->stellarService->verifyTransaction($stellarPayment['transaction_hash']);
+                $response['stellar_verification'] = $verification;
+            }
+
+            if (isset($stellarPayment['usdc_payment_hash'])) {
+                $usdcVerification = $this->stellarService->verifyTransaction($stellarPayment['usdc_payment_hash']);
+                $response['usdc_verification'] = $usdcVerification;
+            }
+
+            return response()->json($response);
+
+        } catch (\Exception $e) {
+            Log::error('Exception while checking Stellar payment status', [
+                'error' => $e->getMessage(),
+                'checkout_request_id' => $checkoutRequestId,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to check Stellar payment status',
+                'checkout_request_id' => $checkoutRequestId
             ], 500);
         }
     }

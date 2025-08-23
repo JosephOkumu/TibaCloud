@@ -39,6 +39,7 @@ import {
   CheckCircle,
   X,
   Check,
+  Wallet,
 } from "lucide-react";
 import doctorService, { Doctor } from "@/services/doctorService";
 import { useCalendarBookings } from "@/hooks/useCalendarBookings";
@@ -129,13 +130,55 @@ const DoctorDetails = () => {
   const [consultationType, setConsultationType] = useState("physical");
   const [date, setDate] = useState(null);
   const [timeSlot, setTimeSlot] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState("mpesa");
+  const [paymentMethod, setPaymentMethod] = useState<"mpesa" | "stellar">(
+    "mpesa",
+  );
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [stellarWalletConnected, setStellarWalletConnected] = useState(false);
+  const [selectedAsset, setSelectedAsset] = useState("USDC");
+  const [customerWallet, setCustomerWallet] = useState("");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Stellar payment helper functions
+  const getUSDAmount = () => {
+    // Convert KES to USD (approximate rate: 1 USD = 130 KES)
+    const usdAmount = (doctor?.default_consultation_fee || 0) / 130;
+    return usdAmount.toFixed(2);
+  };
+
+  const connectStellarWallet = async () => {
+    try {
+      // Simulate wallet connection - in real implementation, use Freighter wallet
+      const mockWallet =
+        "GBYQZJFO6ECYUDG4UX2FWSZ47UGDCYZ3INDXLX4GQXHJ3A6WKSPT7CYS";
+      setCustomerWallet(mockWallet);
+      setStellarWalletConnected(true);
+
+      toast({
+        title: "Wallet Connected",
+        description: "Your Stellar wallet has been connected successfully",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Failed to connect Stellar wallet:", error);
+      toast({
+        title: "Connection Failed",
+        description: "Failed to connect to Stellar wallet",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Get payment method display text
+  const getPaymentMethodText = (method: "mpesa" | "stellar"): string => {
+    if (method === "mpesa") return "M-Pesa";
+    if (method === "stellar") return "Stellar Network";
+    return "Unknown";
+  };
 
   // Calendar booking hook
   const {
@@ -160,7 +203,6 @@ const DoctorDetails = () => {
     onSuccess: async (result) => {
       setIsProcessing(false);
 
-      // Create doctor appointment after successful payment
       try {
         if (user && doctor && date && timeSlot) {
           const appointmentDateTime = new Date(date);
@@ -1001,7 +1043,9 @@ const DoctorDetails = () => {
                 </Label>
                 <RadioGroup
                   value={paymentMethod}
-                  onValueChange={setPaymentMethod}
+                  onValueChange={(value) =>
+                    setPaymentMethod(value as "mpesa" | "stellar")
+                  }
                   className="space-y-2"
                 >
                   <div className="border rounded-lg p-4 flex items-center space-x-2">
@@ -1019,17 +1063,15 @@ const DoctorDetails = () => {
                     </Label>
                   </div>
                   <div className="border rounded-lg p-4 flex items-center space-x-2">
-                    <RadioGroupItem value="card" id="card" />
+                    <RadioGroupItem value="stellar" id="stellar" />
                     <Label
-                      htmlFor="card"
+                      htmlFor="stellar"
                       className="flex items-center cursor-pointer"
                     >
-                      <div className="bg-blue-100 rounded-full p-1 mr-2">
-                        <span className="text-blue-600 font-bold text-xs">
-                          C
-                        </span>
+                      <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-full p-1 mr-2">
+                        <Wallet className="h-3 w-3 text-white" />
                       </div>
-                      Credit/Debit Card
+                      Stellar Network (USDC/USDT)
                     </Label>
                   </div>
                 </RadioGroup>
@@ -1063,33 +1105,81 @@ const DoctorDetails = () => {
                 </div>
               )}
 
-              {paymentMethod === "card" && (
+              {paymentMethod === "stellar" && (
                 <div className="mb-6 space-y-4">
+                  {/* Asset Selection */}
                   <div>
-                    <Label
-                      htmlFor="cardNumber"
-                      className="mb-2 block font-medium"
-                    >
-                      Card Number
+                    <Label className="mb-3 block font-medium">
+                      Select Asset
                     </Label>
-                    <Input id="cardNumber" placeholder="1234 5678 9012 3456" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label
-                        htmlFor="expiry"
-                        className="mb-2 block font-medium"
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => setSelectedAsset("USDC")}
+                        className={`p-3 border rounded-lg text-center transition-all ${
+                          selectedAsset === "USDC"
+                            ? "border-blue-500 bg-blue-50 text-blue-700"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
                       >
-                        Expiry Date
-                      </Label>
-                      <Input id="expiry" placeholder="MM/YY" />
+                        <div className="font-medium">USDC</div>
+                        <div className="text-xs text-gray-500">
+                          ${getUSDAmount()}
+                        </div>
+                      </button>
+                      <button
+                        onClick={() => setSelectedAsset("USDT")}
+                        className={`p-3 border rounded-lg text-center transition-all ${
+                          selectedAsset === "USDT"
+                            ? "border-green-500 bg-green-50 text-green-700"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        <div className="font-medium">USDT</div>
+                        <div className="text-xs text-gray-500">
+                          ${getUSDAmount()}
+                        </div>
+                      </button>
                     </div>
-                    <div>
-                      <Label htmlFor="cvv" className="mb-2 block font-medium">
-                        CVV
-                      </Label>
-                      <Input id="cvv" placeholder="123" />
+                  </div>
+
+                  {/* Wallet Connection */}
+                  {!stellarWalletConnected ? (
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <p className="text-sm text-gray-600 mb-3">
+                        Connect your Stellar wallet to continue
+                      </p>
+                      <Button
+                        onClick={connectStellarWallet}
+                        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                        size="sm"
+                      >
+                        <Wallet className="h-4 w-4 mr-2" />
+                        Connect Stellar Wallet
+                      </Button>
                     </div>
+                  ) : (
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-green-800">
+                          Wallet Connected
+                        </span>
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-green-600 font-mono">
+                          {customerWallet.substring(0, 8)}...
+                          {customerWallet.substring(customerWallet.length - 8)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Payment Summary */}
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <p className="text-sm text-blue-700 font-medium">
+                      Payment will be processed via{" "}
+                      {getPaymentMethodText(paymentMethod)}
+                    </p>
                   </div>
                 </div>
               )}

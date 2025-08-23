@@ -62,10 +62,8 @@ export const useMpesaPayment = ({
             await new Promise((resolve) => setTimeout(resolve, interval));
           }
 
-          let statusResponse: PaymentStatusResponse;
-
           // Always use real M-Pesa API for status checking
-          statusResponse =
+          const statusResponse =
             await mpesaService.getPaymentResult(checkoutRequestId);
 
           console.log(`Payment status check ${attempts + 1}:`, statusResponse);
@@ -98,23 +96,35 @@ export const useMpesaPayment = ({
             `Waiting for payment confirmation... Please check your phone and enter your M-Pesa PIN. (${attempts}/${maxAttempts}) - ${timeRemaining} min remaining`,
           );
         } catch (error) {
-          console.error(
-            `Payment status check error (attempt ${attempts + 1}):`,
-            error,
+          console.log(
+            `Payment status check attempt ${attempts + 1}: Still processing...`,
           );
+
+          // All errors during polling are treated as "still processing"
+          // This is normal M-Pesa behavior while waiting for user to pay
           attempts++;
+          const timeRemaining = Math.ceil(
+            ((maxAttempts - attempts) * interval) / 1000 / 60,
+          );
+          updateStatus(
+            `Payment processing... Please complete payment on your phone. (${attempts}/${maxAttempts}) - ${timeRemaining} min remaining`,
+          );
+
           if (attempts >= maxAttempts) {
             return {
               success: false,
               error:
-                "Payment status check timed out - please contact support if money was deducted",
+                "Payment confirmation timed out - please contact support if money was deducted",
             };
           }
-          // Wait before retrying on error
-          await new Promise((resolve) => setTimeout(resolve, 3000));
+          // Wait before next check
+          await new Promise((resolve) => setTimeout(resolve, interval));
         }
       }
 
+      // If we reach here, it means we've exhausted all attempts
+      // Check if the last known status was still processing
+      console.log("Polling completed - checking final status");
       return {
         success: false,
         error:
@@ -158,8 +168,6 @@ export const useMpesaPayment = ({
         // Always use real M-Pesa sandbox for STK push
         console.log("Using real M-Pesa sandbox for STK push");
 
-        let stkResponse: StkPushResponse;
-
         // Create validated request with numeric amount
         const validatedRequest = {
           ...request,
@@ -167,7 +175,8 @@ export const useMpesaPayment = ({
         };
 
         console.log("Initiating real M-Pesa STK push");
-        stkResponse = await mpesaService.initiatePayment(validatedRequest);
+        const stkResponse =
+          await mpesaService.initiatePayment(validatedRequest);
 
         console.log("STK Push Response:", stkResponse);
 
