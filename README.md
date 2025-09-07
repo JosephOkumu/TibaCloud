@@ -1,6 +1,6 @@
 # TibaCloud
 
-This an online healthcare management platform that enables patients to easily and effectively access healthcare services from healthcare providers.
+This a web3 healthcare management platform that enables patients to easily and effectively access healthcare services from healthcare providers and payment is made using Mpesa, but the service rovider receives the payment in stable coins. This is a Stellar Web3 project.
 
 ## Technologies Used
 
